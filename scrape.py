@@ -48,3 +48,58 @@ def is_reply(tweet_obj):
         return True
 
     return False
+
+
+def scrape_uname(username=None, limit=None, include_replies=False, include_links=False, strip_usertags=False, strip_hashtags=False):
+    """
+    Given a username, download the tweets that abide by the parameters
+
+    Note: limit must be a multiple of 20
+    """
+
+    if limit:
+        assert limit % 20 == 0, "Limit must be a multiple of 20"
+    else:
+        config = twint.Config()
+        config.Username = username
+        config.Store_object = True
+
+        if include_links:
+            config.Links = "include"
+        else:
+            config.Links = "exclude"
+
+        twint.run.Lookup(config)
+        limit = twint.output.users_list[-1].tweets
+
+    pattern = URL_PATTERN
+
+    if strip_usertags:
+        pattern += UNAME_PATTERN
+
+    if strip_usertags:
+        pattern += HASHTAG_PATTERN
+
+    with open(".temp", "w", encoding="utf-8") as f:
+        f.write(str(-1))
+
+    print("Scraping tweets from @%s..." % username)
+
+    with open("{}_tweets.csv".format(username), "w", encoding="utf-8") as f:
+        w = csv.writer(f)
+
+        # GPT-2 format expects a CSV header by default
+        w.writerow(["tweets"])
+
+        prog = tqdm(range(limit), desc="Oldest tweet from {}".format(username))
+
+        # TODO looping of scraping and writing to CSV
+
+    prog.close()
+    os.remove(".temp")
+
+    return
+
+
+if __name__ == "__main__":
+    fire.Fire(scrape_uname)
