@@ -1,3 +1,5 @@
 twint
 fire
 tqdm
+tensorflow==1.15
+gpt-2-simple
