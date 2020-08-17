@@ -49,14 +49,45 @@ def is_reply(tweet_obj):
     return False
 
 
-def download_tweets(username=None, limit=2000, include_replies=True, include_links=False, strip_usertags=True, strip_hashtags=True):
+def download_tweets(username="squatchssb", limit=None, include_replies=False, include_links=False, strip_usertags=True, strip_hashtags=True):
     """
     Given a username, download the tweets that abide by the parameters
 
     Note: limit must be a multiple of 20
     """
 
-    # TODO better limit estimation
+    print("Username: %s" % username)
+
+    # better limit estimation
+    if limit:
+        assert limit % 20 == 0, "limit is not a multiple of 20"
+    else:
+        found = False
+
+        for _ in range(0, 4):
+            if not found:
+                c = twint.Config()
+                c.Username = username
+                c.Store_object = True
+
+                twint.run.Lookup(c)
+
+                try:
+                    users = twint.output.users_list
+                    limit = users[0].tweets
+                    found = True
+                except:
+                    found = False
+
+                if not found:
+                    sleep(1.0)
+            else:
+                continue
+
+    if not found:
+        limit = 2000
+
+    print("Limit: %d" % limit)
 
     pattern = URL_PATTERN
 
@@ -78,7 +109,7 @@ def download_tweets(username=None, limit=2000, include_replies=True, include_lin
         prog = tqdm(
             range(limit), desc="Scraping tweet from {}".format(username))
 
-        # TODO looping of scraping and writing to CSV
+        # looping of scraping and writing to CSV
         for i in range((limit // 20) - 1):
             tweet_data = []
 
