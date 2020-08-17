@@ -56,6 +56,8 @@ def download_tweets(username=None, limit=2000, include_replies=True, include_lin
     Note: limit must be a multiple of 20
     """
 
+    # TODO better limit estimation
+
     pattern = URL_PATTERN
 
     if strip_usertags:
