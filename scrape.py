@@ -15,7 +15,6 @@ from time import sleep
 from tqdm import tqdm
 
 
-# Disable logging to get rid of any warnings
 logger = logging.getLogger()
 logger.disabled = True
 
@@ -50,27 +49,12 @@ def is_reply(tweet_obj):
     return False
 
 
-def scrape_uname(username=None, limit=None, include_replies=False, include_links=False, strip_usertags=False, strip_hashtags=False):
+def download_tweets(username=None, limit=2000, include_replies=True, include_links=False, strip_usertags=True, strip_hashtags=True):
     """
     Given a username, download the tweets that abide by the parameters
 
     Note: limit must be a multiple of 20
     """
-
-    if limit:
-        assert limit % 20 == 0, "Limit must be a multiple of 20"
-    else:
-        config = twint.Config()
-        config.Username = username
-        config.Store_object = True
-
-        if include_links:
-            config.Links = "include"
-        else:
-            config.Links = "exclude"
-
-        twint.run.Lookup(config)
-        limit = twint.output.users_list[-1].tweets
 
     pattern = URL_PATTERN
 
@@ -83,17 +67,68 @@ def scrape_uname(username=None, limit=None, include_replies=False, include_links
     with open(".temp", "w", encoding="utf-8") as f:
         f.write(str(-1))
 
-    print("Scraping tweets from @%s..." % username)
-
     with open("{}_tweets.csv".format(username), "w", encoding="utf-8") as f:
         w = csv.writer(f)
 
         # GPT-2 format expects a CSV header by default
         w.writerow(["tweets"])
 
-        prog = tqdm(range(limit), desc="Oldest tweet from {}".format(username))
+        prog = tqdm(
+            range(limit), desc="Scraping tweet from {}".format(username))
 
         # TODO looping of scraping and writing to CSV
+        for i in range((limit // 20) - 1):
+            tweet_data = []
+
+            # try 5 times
+            for _ in range(0, 4):
+                if len(tweet_data) == 0:
+                    config = twint.Config()
+                    config.Store_object = True
+                    config.Hide_output = True
+                    config.Username = username
+                    config.Limit = 40
+                    config.Resume = ".temp"
+                    config.Store_object_tweets_list = tweet_data
+
+                    twint.run.Search(config)
+
+                    if len(tweet_data) == 0:
+                        sleep(1.0)
+                else:
+                    continue
+
+            # if we fail, we fail
+            if len(tweet_data) == 0:
+                config = twint.Config()
+                config.Store_object = True
+                config.Hide_output = True
+                config.Username = username
+                config.Limit = 40
+                config.Resume = ".temp"
+                config.Store_object_tweets_list = tweet_data
+
+            # case on the inputs
+            if not include_replies:
+                tweets = [re.sub(pattern, "", t.tweet).strip()
+                          for t in tweet_data if not is_reply(t)]
+
+                for t in tweets:
+                    if t != "" and not t.startswith("@"):
+                        w.writerow([t])
+            else:
+                tweets = [re.sub(pattern, "", t.tweet).strip()
+                          for t in tweet_data]
+
+                for t in tweets:
+                    if t != "":
+                        w.writerow([t])
+
+            # update progress bar
+            if i > 0:
+                prog.update(20)
+            else:
+                prog.update(40)
 
     prog.close()
     os.remove(".temp")
@@ -102,4 +137,4 @@ def scrape_uname(username=None, limit=None, include_replies=False, include_links
 
 
 if __name__ == "__main__":
-    fire.Fire(scrape_uname)
+    fire.Fire(download_tweets)
