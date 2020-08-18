@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# GPT-2 Models and Checkpoints
+checkpoint
+models
