@@ -49,7 +49,7 @@ def is_reply(tweet_obj):
     return False
 
 
-def download_tweets(username="squatchssb", limit=None, include_replies=False, include_links=False, strip_usertags=True, strip_hashtags=True):
+def download_tweets(username=None, limit=None, include_replies=False, include_links=False, strip_usertags=False, strip_hashtags=False):
     """
     Given a username, download the tweets that abide by the parameters
 
@@ -59,8 +59,10 @@ def download_tweets(username="squatchssb", limit=None, include_replies=False, in
     print("Username: %s" % username)
 
     # better limit estimation
+    found = False
     if limit:
         assert limit % 20 == 0, "limit is not a multiple of 20"
+        found = True
     else:
         found = False
 
@@ -80,7 +82,7 @@ def download_tweets(username="squatchssb", limit=None, include_replies=False, in
                     found = False
 
                 if not found:
-                    sleep(1.0)
+                    sleep(15.0)
             else:
                 continue
 
@@ -127,7 +129,7 @@ def download_tweets(username="squatchssb", limit=None, include_replies=False, in
                     twint.run.Search(config)
 
                     if len(tweet_data) == 0:
-                        sleep(1.0)
+                        sleep(15.0)
                 else:
                     continue
 
