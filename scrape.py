@@ -108,8 +108,7 @@ def download_tweets(username=None, limit=None, include_replies=False, include_li
         # GPT-2 format expects a CSV header by default
         w.writerow(["tweets"])
 
-        prog = tqdm(
-            range(limit), desc="Scraping tweet from {}".format(username))
+        prog = tqdm(range(limit), desc="Scraping tweet progress")
 
         # looping of scraping and writing to CSV
         for i in range((limit // 20) - 1):
