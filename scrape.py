@@ -82,7 +82,7 @@ def download_tweets(username=None, limit=None, include_replies=False, include_li
                     found = False
 
                 if not found:
-                    sleep(15.0)
+                    sleep(1.0)
             else:
                 continue
 
@@ -128,7 +128,7 @@ def download_tweets(username=None, limit=None, include_replies=False, include_li
                     twint.run.Search(config)
 
                     if len(tweet_data) == 0:
-                        sleep(15.0)
+                        sleep(1.0)
                 else:
                     continue
 
