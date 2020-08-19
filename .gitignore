@@ -129,5 +129,4 @@ dmypy.json
 .pyre/
 
 # GPT-2 Models and Checkpoints
-checkpoint
-models
+deep_squatch.txt
