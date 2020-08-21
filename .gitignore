@@ -130,3 +130,4 @@ dmypy.json
 
 # GPT-2 Models and Checkpoints
 deep_squatch.txt
+squatchssb_tweets.csv
