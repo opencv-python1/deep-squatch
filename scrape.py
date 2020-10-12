@@ -49,7 +49,7 @@ def is_reply(tweet_obj):
     return False
 
 
-def download_tweets(username=None, limit=None, include_replies=False, include_links=False, strip_usertags=False, strip_hashtags=False):
+def download_tweets(username=None, limit=1000, include_replies=False, include_links=False, strip_usertags=False, strip_hashtags=False):
     """
     Given a username, download the tweets that abide by the parameters
 
@@ -57,38 +57,6 @@ def download_tweets(username=None, limit=None, include_replies=False, include_li
     """
 
     print("Username: %s" % username)
-
-    # better limit estimation
-    found = False
-    if limit:
-        assert limit % 20 == 0, "limit is not a multiple of 20"
-        found = True
-    else:
-        found = False
-
-        for _ in range(0, 4):
-            if not found:
-                c = twint.Config()
-                c.Username = username
-                c.Store_object = True
-
-                twint.run.Lookup(c)
-
-                try:
-                    users = twint.output.users_list
-                    limit = users[0].tweets
-                    found = True
-                except:
-                    found = False
-
-                if not found:
-                    sleep(1.0)
-            else:
-                continue
-
-    if not found:
-        limit = 2000
-
     print("Limit: %d" % limit)
 
     pattern = URL_PATTERN
@@ -116,20 +84,24 @@ def download_tweets(username=None, limit=None, include_replies=False, include_li
 
             # try 5 times
             for _ in range(0, 4):
-                if len(tweet_data) == 0:
-                    config = twint.Config()
-                    config.Store_object = True
-                    config.Hide_output = True
-                    config.Username = username
-                    config.Limit = 40
-                    config.Resume = ".temp"
-                    config.Store_object_tweets_list = tweet_data
-
-                    twint.run.Search(config)
-
+                try:
                     if len(tweet_data) == 0:
-                        sleep(1.0)
-                else:
+                        config = twint.Config()
+                        config.Store_object = True
+                        config.Hide_output = True
+                        config.Username = username
+                        config.Limit = 40
+                        config.Resume = ".temp"
+                        config.Store_object_tweets_list = tweet_data
+
+                        twint.run.Search(config)
+
+                        if len(tweet_data) == 0:
+                            print("Sleeping")
+                            sleep(1.0)
+                    else:
+                        continue
+                except:
                     continue
 
             # if we fail, we fail
